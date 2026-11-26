@@ -12,7 +12,7 @@
 - 이 repo를 **논문 재현이 가능한 수준의 연구용 저장소**로 구성하고 유지함
 - 모든 학습·평가를 **재현 가능하게** 실행함 (config, 환경, 커밋 해시, 데이터 버전을 함께 기록)
 - 학습 dynamics를 **JSONL로 빠짐없이 로깅**해서 어떤 figure든 다시 그릴 수 있게 함
-- 실험마다 **한국어 + English 혼합 Markdown 리포트**를 쓰고 GitHub(`ChanLumerico/aiku-hands`, private)에 push함
+- 실험마다 **한국어 + English 혼합 Markdown 리포트**를 쓰고 GitHub(`ChanLumerico/aiku-hands`)에 push함. 2026-11-27 사용자 지시로 **public** 전환됨 → secret·개인정보·미공개 데이터 커밋에 특히 주의
 - 회의적인 공저자 태도를 유지함. **📏 측정**, **📚 문헌**, **🔮 추측**을 항상 구분함
 
 ---
@@ -88,7 +88,7 @@
 3. **결과를 지어내지 않음.** 숫자는 로그·JSONL에서만. 논문·arXiv ID·인용은 검증된 것만 (2025년 이후 자료는 검색 확인 후)
 4. **큰 파일은 git에 넣지 않음** (checkpoint, dataset, 영상, raw 로그)
 5. **secret 커밋 금지** (HF token, `.env`, `~/.ssh`)
-6. GitHub repo는 별도 지시가 없으면 **private**
+6. 새 GitHub repo는 별도 지시가 없으면 **private** (aiku-hands는 사용자 지시로 public)
 7. 확신 없는 CLI 옵션은 `lerobot-train --help` 또는 소스(`site-packages/lerobot/`)로 **먼저 확인**
 8. 되돌릴 수 없는 작업(파일 삭제, force push, 대용량 다운로드)은 실행 전 사용자 확인
 
