@@ -32,6 +32,7 @@ def git_info(repo: Path) -> dict[str, Any]:
     commit = _run(["git", "rev-parse", "HEAD"], repo)
     status = _run(["git", "status", "--porcelain"], repo)
     return {"git_commit": commit, "git_dirty": bool(status) if status is not None else None,
+            "git_dirty_files": status.splitlines()[:50] if status else [],
             "git_branch": _run(["git", "rev-parse", "--abbrev-ref", "HEAD"], repo)}
 
 
@@ -71,6 +72,7 @@ def dataset_info(root: Path | None, repo_id: str | None) -> dict[str, Any]:
 def build_manifest(*, exp_id: str, run_id: str, cmdline: list[str], repo: Path,
                    dataset_root: Path | None, dataset_repo_id: str | None, seed: int | None,
                    env_dir: Path, python: str = sys.executable) -> dict[str, Any]:
+    git = git_info(repo)  # BEFORE writing anything into the repo (else our own files make it dirty)
     env_dir.mkdir(parents=True, exist_ok=True)
     freeze = _run([python, "-m", "pip", "freeze"]) or ""
     freeze_p = env_dir / "pip_freeze.txt"
@@ -81,7 +83,7 @@ def build_manifest(*, exp_id: str, run_id: str, cmdline: list[str], repo: Path,
         "exp_id": exp_id,
         "run_id": run_id,
         "start_ts": now_iso(),
-        **git_info(repo),
+        **git,
         "cmdline": cmdline,
         "seed": seed,
         "python": _run([python, "-c", "import sys;print(sys.version.split()[0])"]),

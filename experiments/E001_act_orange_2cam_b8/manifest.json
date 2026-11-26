@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "exp_id": "E001",
+  "run_id": "act_orange_2cam_b8",
+  "start_ts": "2026-11-27T02:14:37.640+09:00",
+  "git_commit": "28bfe37f575fb7ee721c0ee9e0379ca931c1a8e2",
+  "git_dirty": true,
+  "git_branch": "main",
+  "cmdline": [
+    "/Users/chanlee/venvs/lerobot/bin/lerobot-train",
+    "--dataset.repo_id=edge-inference/cohab-so101-pick-orange-dataset",
+    "--dataset.root=/Users/chanlee/datasets/cohab_orange",
+    "--dataset.video_backend=pyav",
+    "--policy.type=act",
+    "--policy.device=mps",
+    "--policy.push_to_hub=false",
+    "--batch_size=8",
+    "--num_workers=8",
+    "--steps=70000",
+    "--log_freq=500",
+    "--save_freq=14000",
+    "--trackio.enable=false",
+    "--output_dir=/Users/chanlee/Desktop/Programming/aiku-hands/runs/act_orange_2cam_b8",
+    "--job_name=act_orange_2cam_b8"
+  ],
+  "seed": 1000,
+  "python": "3.12.16",
+  "python_executable": "/Users/chanlee/venvs/lerobot/bin/python",
+  "torch": "2.15.0",
+  "lerobot": "0.7.0",
+  "mps_available": true,
+  "pip_freeze": "experiments/E001_act_orange_2cam_b8/env/pip_freeze.txt",
+  "pip_freeze_sha256": "ea5d654f3d1f170a0281aebc236be78d9195a97f6ca69ecb2617cb75b6b1a6af",
+  "host": {
+    "hostname": "Chans-M4-Max-Mac-Studio.local",
+    "hw_model": "Mac16,9",
+    "cpu_brand": "Apple M4 Max",
+    "mem_gb": 36.0,
+    "os": "Darwin 27.3.0",
+    "macos": "27.3"
+  },
+  "dataset": {
+    "repo_id": "edge-inference/cohab-so101-pick-orange-dataset",
+    "root": "/Users/chanlee/datasets/cohab_orange",
+    "info_json_sha256": "94574dc76d8f9262594023b3af1a7578e11857d1693f1cde894b0a23b12f690d",
+    "stats_json_sha256": "9e083ac6636888380e8fcb8eba8e45695ad4c1b61e930df33a9bdab6d525fe41",
+    "n_episodes": 100,
+    "n_frames": 60541,
+    "fps": 30,
+    "codebase_version": "v3.0"
+  },
+  "wrapper_cmdline": [
+    "scripts/run_train.py",
+    "--exp",
+    "E001",
+    "--config",
+    "configs/train/act_orange_2cam_b8.yaml"
+  ],
+  "raw_log": "logs/act_orange_2cam_b8.log"
+}

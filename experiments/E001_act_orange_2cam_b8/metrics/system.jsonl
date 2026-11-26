@@ -1,0 +1,1 @@
+{"schema_version":1,"exp_id":"E001","run_id":"act_orange_2cam_b8","ts":"2026-11-27T02:15:07.752+09:00","wall_s":30.759,"pid":78627,"n_procs":11,"cpu_pct":17.9,"rss_mb":5454.2,"sys_mem_used_pct":66.9,"swap_used_mb":386.9,"mps_alloc_mb":null,"mps_driver_mb":null,"disk_free_gb":17.58,"thermal_state":"nominal"}

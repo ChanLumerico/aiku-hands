@@ -1,3 +1,3 @@
 id,date,status,model,dataset,steps,batch,cams,best_metric,report
 E000_act_orange_smoke,2026-11-27,done,ACT,cohab_orange,200,8,front+wrist,loss@200=3.545 (train),experiments/E000_act_orange_smoke/README.md
-E001_act_orange_2cam_b8,2026-11-27,planned,ACT,cohab_orange,70000,8,front+wrist,,experiments/E001_act_orange_2cam_b8/README.md
+E001_act_orange_2cam_b8,2026-11-27,running,ACT,cohab_orange,70000,8,front+wrist,,experiments/E001_act_orange_2cam_b8/README.md
