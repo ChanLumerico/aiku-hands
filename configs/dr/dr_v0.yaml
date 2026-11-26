@@ -1,0 +1,8 @@
+# Model B domain randomization ranges — PLACEHOLDER (not decided; nothing here is used yet).
+status: draft
+randomize:
+  lighting: null
+  textures: null
+  camera_pose: null      # depends on the unresolved real wrist offset (docs/camera/wrist_offset.md)
+  object_pose: null
+  physics: null

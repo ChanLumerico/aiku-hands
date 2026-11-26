@@ -1,0 +1,14 @@
+# Sim rollout protocol (docs/04_evaluation_protocol.md). Coordinates TBD with HANDS.
+task: LeIsaac-SO101-PickOrange-v0
+host: hands
+rollouts_per_condition: 50
+time_limit_s: 30
+grid:
+  layout: 3x3          # position_id 1..9, row-major, seen from the front camera
+  positions_xy_m: null # TODO(HANDS): fill with the same 9 coordinates taped on the real table
+seeds:
+  base: 1000           # seed = base + position_id (+ 100 * trial) — fixed, logged per rollout
+success:
+  object_in_target: true
+  gripper_open_and_clear: true
+output: experiments/<ID>/metrics/rollouts_sim.jsonl

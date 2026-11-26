@@ -1,0 +1,26 @@
+Successfully installed accelerate-1.16.0 brotli-1.2.1 httptools-0.9.0 orjson-3.13.0 psutil-7.2.2 python-dotenv-1.2.4 python-multipart-0.0.34 starlette-1.10.0 trackio-0.45.1 uvicorn-0.54.0 uvloop-0.23.0 watchfiles-1.3.0 websockets-17.4
+INFO 2026-11-27 01:45:17 ot_train.py:793 dataset.num_episodes=100
+INFO 2026-11-27 01:45:17 ot_train.py:794 Effective batch size: 8 x 1 dp workers x 1 grad accum = 8 (topology: dp_replicate=1, dp_shard=1)
+INFO 2026-11-27 01:45:17 ot_train.py:799 num_learnable_params=51597190 (52M)
+INFO 2026-11-27 01:45:17 ot_train.py:800 num_total_params=51597190 (52M)
+Training:   0%|          | 0/200 [00:00<?, ?step/s]INFO 2026-11-27 01:45:17 ot_train.py:848 Start offline training on a fixed dataset, with effective batch size: 8
+W1127 01:45:19.196000 69716 torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
+W1127 01:45:19.197000 69715 torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
+W1127 01:45:19.200000 69717 torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
+W1127 01:45:19.200000 69722 torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
+W1127 01:45:19.201000 69718 torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
+W1127 01:45:19.206000 69721 torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
+W1127 01:45:19.209000 69719 torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
+W1127 01:45:19.215000 69720 torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
+Training:  10%|█         | 20/200 [00:14<01:01,  2.93step/s]INFO 2026-11-27 01:45:31 ot_train.py:894 step:20 smpl:160 ep:0 epch:0.00 loss:25.027 grdn:444.021 lr:1.0e-05 data_s:0.149 prep_s:0.019 updt_s:0.533 step_s:0.701 smp/s:11 l1_loss:0.827 kld_loss:2.420
+Training:  20%|██        | 40/200 [00:20<00:54,  2.94step/s]INFO 2026-11-27 01:45:38 ot_train.py:894 step:40 smpl:320 ep:1 epch:0.01 loss:7.843 grdn:176.913 lr:1.0e-05 data_s:0.003 prep_s:0.000 updt_s:0.337 step_s:0.340 smp/s:24 l1_loss:0.811 kld_loss:0.703
+Training:  30%|███       | 60/200 [00:27<00:47,  2.95step/s]INFO 2026-11-27 01:45:45 ot_train.py:894 step:60 smpl:480 ep:1 epch:0.01 loss:5.775 grdn:141.448 lr:1.0e-05 data_s:0.003 prep_s:0.000 updt_s:0.336 step_s:0.339 smp/s:24 l1_loss:0.814 kld_loss:0.496
+Training:  40%|████      | 80/200 [00:34<00:40,  2.95step/s]INFO 2026-11-27 01:45:51 ot_train.py:894 step:80 smpl:640 ep:1 epch:0.01 loss:4.911 grdn:127.992 lr:1.0e-05 data_s:0.003 prep_s:0.000 updt_s:0.336 step_s:0.339 smp/s:24 l1_loss:0.777 kld_loss:0.413
+Training:  50%|█████     | 100/200 [00:41<00:34,  2.91step/s]INFO 2026-11-27 01:45:58 ot_train.py:894 step:100 smpl:800 ep:1 epch:0.01 loss:4.538 grdn:115.728 lr:1.0e-05 data_s:0.003 prep_s:0.000 updt_s:0.338 step_s:0.340 smp/s:24 l1_loss:0.746 kld_loss:0.379
+Training:  60%|██████    | 120/200 [00:48<00:27,  2.94step/s]INFO 2026-11-27 01:46:05 ot_train.py:894 step:120 smpl:960 ep:2 epch:0.02 loss:4.438 grdn:115.597 lr:1.0e-05 data_s:0.003 prep_s:0.000 updt_s:0.338 step_s:0.341 smp/s:23 l1_loss:0.707 kld_loss:0.373
+Training:  70%|███████   | 140/200 [00:54<00:20,  2.95step/s]INFO 2026-11-27 01:46:12 ot_train.py:894 step:140 smpl:1K ep:2 epch:0.02 loss:4.062 grdn:109.885 lr:1.0e-05 data_s:0.003 prep_s:0.000 updt_s:0.337 step_s:0.340 smp/s:24 l1_loss:0.686 kld_loss:0.338
+Training:  80%|████████  | 160/200 [01:01<00:13,  2.94step/s]INFO 2026-11-27 01:46:19 ot_train.py:894 step:160 smpl:1K ep:2 epch:0.02 loss:3.844 grdn:102.583 lr:1.0e-05 data_s:0.003 prep_s:0.000 updt_s:0.336 step_s:0.339 smp/s:24 l1_loss:0.678 kld_loss:0.317
+Training:  90%|█████████ | 180/200 [01:08<00:06,  2.93step/s]INFO 2026-11-27 01:46:25 ot_train.py:894 step:180 smpl:1K ep:2 epch:0.02 loss:3.656 grdn:96.349 lr:1.0e-05 data_s:0.003 prep_s:0.000 updt_s:0.339 step_s:0.342 smp/s:23 l1_loss:0.700 kld_loss:0.296
+Training: 100%|██████████| 200/200 [01:15<00:00,  2.95step/s]INFO 2026-11-27 01:46:32 ot_train.py:894 step:200 smpl:2K ep:3 epch:0.03 loss:3.545 grdn:92.030 lr:1.0e-05 data_s:0.003 prep_s:0.000 updt_s:0.337 step_s:0.340 smp/s:24 l1_loss:0.676 kld_loss:0.287
+Training: 100%|██████████| 200/200 [01:15<00:00,  2.66step/s]
+INFO 2026-11-27 01:46:32 t_train.py:1026 End of training

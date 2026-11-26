@@ -1,0 +1,12 @@
+# Shared lerobot-train args for ACT on the cohab orange dataset (Mac Studio, MPS fp32).
+# Child configs list only what differs; merge is by --key (child wins).
+args:
+  - --dataset.repo_id=edge-inference/cohab-so101-pick-orange-dataset
+  - --dataset.root=$HOME/datasets/cohab_orange
+  - --dataset.video_backend=pyav
+  - --policy.type=act
+  - --policy.device=mps
+  - --policy.push_to_hub=false
+  - --batch_size=8
+  - --num_workers=8
+  - --trackio.enable=false

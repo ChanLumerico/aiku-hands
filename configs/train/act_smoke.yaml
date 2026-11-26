@@ -1,0 +1,20 @@
+# E000: 200-step smoke test actually run on 2026-11-27 01:45 KST (args reconstructed from tmux history).
+exp_id: E000
+exp_dir: E000_act_orange_smoke
+run_id: act_smoke
+entrypoint: lerobot-train
+args:
+  - --dataset.repo_id=edge-inference/cohab-so101-pick-orange-dataset
+  - --dataset.root=$HOME/datasets/cohab_orange
+  - --dataset.video_backend=pyav
+  - --policy.type=act
+  - --policy.device=mps
+  - --policy.push_to_hub=false
+  - --batch_size=8
+  - --num_workers=8
+  - --steps=200
+  - --log_freq=20
+  - --save_checkpoint=false
+  - --trackio.enable=false
+  - --output_dir=$HOME/runs/act_smoke
+  - --job_name=act_smoke

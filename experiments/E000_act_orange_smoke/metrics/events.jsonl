@@ -1,0 +1,7 @@
+{"schema_version":1,"exp_id":"E000","run_id":"act_smoke","ts":"2026-11-27T02:02:42.857+09:00","wall_s":0.0,"type":"backfill_start","source_log":"logs/act_smoke_tmux.log","source_sha256":"3c884489c1f40060db442aeae65e8a40fff8c270a360d9184d0712887c71b9c0","config":"configs/train/act_smoke.yaml","batch_size":8,"log_freq":20}
+{"schema_version":1,"exp_id":"E000","run_id":"act_smoke","ts":"2026-11-27T01:45:17.000+09:00","wall_s":0.0,"type":"run_info","num_episodes":100}
+{"schema_version":1,"exp_id":"E000","run_id":"act_smoke","ts":"2026-11-27T01:45:17.000+09:00","wall_s":0.0,"type":"run_info","effective_batch_size":8}
+{"schema_version":1,"exp_id":"E000","run_id":"act_smoke","ts":"2026-11-27T01:45:17.000+09:00","wall_s":0.0,"type":"run_info","num_learnable_params":51597190}
+{"schema_version":1,"exp_id":"E000","run_id":"act_smoke","ts":"2026-11-27T01:45:17.000+09:00","wall_s":0.0,"type":"run_info","num_total_params":51597190}
+{"schema_version":1,"exp_id":"E000","run_id":"act_smoke","ts":"2026-11-27T01:46:32.000+09:00","wall_s":75.0,"type":"training_end_logged","last_step":200}
+{"schema_version":1,"exp_id":"E000","run_id":"act_smoke","ts":"2026-11-27T02:02:42.859+09:00","wall_s":0.002,"type":"backfill_end","counts":{"train":10,"ckpt":0,"eval_loss":0,"parse_error":0,"warning":0,"step_inexact":0},"last_step":200}

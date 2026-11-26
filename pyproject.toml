@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aiku_hands"
+version = "0.1.0"
+description = "AIKU x HANDS: Sim-to-Real ACT on SO-101 with Domain Randomization (research tooling)"
+requires-python = ">=3.11,<3.14"
+dependencies = ["matplotlib", "pandas", "pyyaml", "psutil"]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

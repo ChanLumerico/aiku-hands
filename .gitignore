@@ -1,0 +1,22 @@
+# large / local artifacts
+runs/
+logs/
+data/
+**/checkpoints/
+*.safetensors
+*.pt
+*.pth
+*.mp4
+*.av1
+*.npy
+# secrets
+.env
+.env.*
+*.token
+# python / os
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+.DS_Store
+.claude/settings.local.json

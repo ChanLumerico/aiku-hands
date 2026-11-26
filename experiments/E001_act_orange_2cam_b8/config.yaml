@@ -1,0 +1,23 @@
+# E001: CLI args exactly as specified for E001 (front+wrist, bs=8, 70k steps). Not launched as of 2026-11-27.
+exp_id: E001
+exp_dir: E001_act_orange_2cam_b8
+run_id: act_orange_2cam_b8
+entrypoint: lerobot-train
+notes: >
+  Full 100 episodes (no held-out split) -> any offline eval on E001 is a train-set number.
+  seed not passed -> lerobot 0.7.0 default seed=1000.
+args:
+  - --dataset.repo_id=edge-inference/cohab-so101-pick-orange-dataset
+  - --dataset.root=$HOME/datasets/cohab_orange
+  - --dataset.video_backend=pyav
+  - --policy.type=act
+  - --policy.device=mps
+  - --policy.push_to_hub=false
+  - --batch_size=8
+  - --num_workers=8
+  - --steps=70000
+  - --log_freq=500
+  - --save_freq=14000
+  - --trackio.enable=false
+  - --output_dir=runs/act_orange_2cam_b8
+  - --job_name=act_orange_2cam_b8
