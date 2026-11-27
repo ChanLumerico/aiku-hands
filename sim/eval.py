@@ -64,6 +64,13 @@ DEFAULTS = {
     "envs": {"policy": "lerobot070", "sim": "leisaac"},
     "server_timeout_s": 300,
     "sim_close_grace_s": 90,
+    # success (ADR-0004): protocol_v1 = oranges in plate + released, held success_hold_steps, within max_policy_steps
+    "success_def": "protocol_v1",
+    "success_hold_steps": 60,
+    "release_dist": 0.10,
+    "max_policy_steps": 1800,
+    # per condition also: name, episodes, seed, warmup_steps, rest [6], policy_mode chunk|step,
+    #                     temporal_ensemble <coeff> (server flag; implies policy_mode step), extra_args
     "conditions": [{"ckpt": 70000, "horizon": 100}],
 }
 
@@ -414,8 +421,10 @@ class Runner:
     def run(self, todo: List[dict]) -> str:
         cfg = self.cfg
         groups: List[List[dict]] = []
-        for c in todo:  # consecutive conditions sharing a checkpoint share one policy server
-            if groups and groups[-1][0]["ckpt"] == c["ckpt"]:
+        def skey(c):  # server identity: checkpoint + temporal-ensemble setting
+            return (c["ckpt"], c.get("temporal_ensemble"))
+        for c in todo:  # consecutive conditions sharing a server config share one policy server
+            if groups and skey(groups[-1][0]) == skey(c):
                 groups[-1].append(c)
             else:
                 groups.append([c])
@@ -424,11 +433,13 @@ class Runner:
             first = cond_name(grp[0])
             ck = grp[0]["ckpt"]
             port = pick_port(cfg["port"])
-            slog = self.rd / "logs" / f"server_ck{ck}.log"
+            te = grp[0].get("temporal_ensemble")
+            slog = self.rd / "logs" / (f"server_ck{ck}" + (f"_te{te}" if te is not None else "") + ".log")
             server_script = MOCK / "mock_policy_server.py" if self.mock else SIM / "act_policy_server.py"
             self.ev("server_start", cond=first, ckpt=ck, port=port)
             srv = self.launch(self.py("policy") + [str(server_script), "--ckpt", str(ckpt_dir(cfg, ck)),
-                                                  "--device", cfg["device"], "--port", str(port)], slog)
+                                                  "--device", cfg["device"], "--port", str(port)]
+                              + (["--temporal_ensemble", str(te)] if te is not None else []), slog)
 
             def ready():
                 return slog.exists() and "listening on" in slog.read_text(errors="replace")
@@ -459,12 +470,19 @@ class Runner:
         cmd = self.py("sim") + [
             str(script), "--task", cfg["task"], "--eval_rounds", str(c.get("episodes", cfg["episodes"])),
             "--seed", str(c.get("seed", cfg["seed"])), "--episode_length_s", str(cfg["episode_length_s"]),
-            "--policy_port", str(port), "--action_horizon", str(c["horizon"]),
+            "--policy_port", str(port), "--action_horizon", str(c.get("horizon", 100)),
             "--warmup_steps", str(c.get("warmup_steps", cfg["warmup_steps"])), "--step_hz", str(cfg["step_hz"]),
             "--out", str(out), "--progress", str(self.rd / "progress.jsonl"),
             "--exp_id", cfg["exp_id"], "--ckpt_step", str(c["ckpt"]), "--model", cfg["model"],
             "--condition", name, "--headless", "--enable_cameras",
+            "--success_def", c.get("success_def", cfg["success_def"]),
+            "--success_hold_steps", str(c.get("success_hold_steps", cfg["success_hold_steps"])),
+            "--release_dist", str(c.get("release_dist", cfg["release_dist"])),
+            "--max_policy_steps", str(c.get("max_policy_steps", cfg["max_policy_steps"])),
+            "--policy_mode", c.get("policy_mode", "step" if c.get("temporal_ensemble") is not None else "chunk"),
         ]
+        if c.get("rest"):
+            cmd += ["--rest"] + [str(v) for v in c["rest"]]
         if cfg["video_eps"] > 0:
             cmd += ["--video_dir", str(self.rd / "videos" / name), "--video_eps", str(cfg["video_eps"]),
                     "--video_every", str(cfg["video_every"])]
@@ -625,16 +643,20 @@ def summarize(rd: Path, md: bool) -> None:
         ls = [r["episode_len_steps"] for r in recs if r.get("success")]
         inf = [r["mean_infer_ms"] for r in recs if r.get("mean_infer_ms") is not None]
         pl = [r["max_objects_placed"] for r in recs if r.get("max_objects_placed") is not None]
-        rows.append((n_, c["ckpt"], c["horizon"], n, k, (k / n if n else float("nan")), lo, hi, to,
-                     (sum(ls) / len(ls) if ls else None), (sum(inf) / len(inf) if inf else None), (sum(pl) / len(pl) if pl else None)))
+        kl = sum(bool(r.get("success_leisaac", r.get("success") if "success_def" not in r else False)) for r in recs)
+        defs = sorted({r.get("success_def", "leisaac") for r in recs})
+        h_lbl = "TE" if c.get("temporal_ensemble") is not None else str(c.get("horizon", "-"))
+        rows.append((n_, c["ckpt"], h_lbl, n, k, (k / n if n else float("nan")), lo, hi, to,
+                     (sum(ls) / len(ls) if ls else None), (sum(inf) / len(inf) if inf else None), (sum(pl) / len(pl) if pl else None), kl, "+".join(defs) or "-"))
     print(f"run {rd.name} · {plan['exp_id']} · task {plan['task']} · seed {plan['seed']} · "
           f"warmup {plan['warmup_steps']} · git {plan.get('_git', {}).get('commit', '')[:8]}"
           + (" (MOCK)" if plan.get("_mock") else ""))
-    hdr = ["cond", "ckpt", "h", "n", "succ", "rate", "Wilson 95% CI", "timeouts", "steps|succ", "infer ms", "max placed (mean)"]
+    hdr = ["cond", "ckpt", "h", "n", "succ", "rate", "Wilson 95% CI", "timeouts", "steps|succ", "infer ms",
+           "max placed (mean)", "succ LeIsaac", "success_def"]
     fmt = [(r[0], str(r[1]), str(r[2]), str(r[3]), str(r[4]), "-" if r[3] == 0 else f"{r[5]:.2f}",
             "-" if r[3] == 0 else f"[{r[6]:.2f}, {r[7]:.2f}]", str(r[8]),
             "-" if r[9] is None else f"{r[9]:.0f}", "-" if r[10] is None else f"{r[10]:.1f}",
-            "-" if r[11] is None else f"{r[11]:.2f}") for r in rows]
+            "-" if r[11] is None else f"{r[11]:.2f}", str(r[12]), r[13]) for r in rows]
     if md:
         print("| " + " | ".join(hdr) + " |")
         print("|" + "---|" * len(hdr))

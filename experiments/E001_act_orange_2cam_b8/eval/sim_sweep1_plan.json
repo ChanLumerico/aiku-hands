@@ -1,0 +1,58 @@
+{
+  "exp_id": "E001",
+  "run": "act_orange_2cam_b8",
+  "ckpt_root": null,
+  "task": "LeIsaac-SO101-PickOrange-v0",
+  "episodes": 20,
+  "seed": 1000,
+  "episode_length_s": 60,
+  "warmup_steps": 120,
+  "step_hz": 0,
+  "video_eps": 2,
+  "video_every": 2,
+  "dump_eps": 0,
+  "model": "A",
+  "port": 5765,
+  "device": "cuda",
+  "envs": {
+    "policy": "lerobot070",
+    "sim": "leisaac"
+  },
+  "server_timeout_s": 300,
+  "sim_close_grace_s": 90,
+  "conditions": [
+    {
+      "ckpt": 28000,
+      "horizon": 100
+    },
+    {
+      "ckpt": 42000,
+      "horizon": 100
+    },
+    {
+      "ckpt": 56000,
+      "horizon": 100
+    },
+    {
+      "ckpt": 70000,
+      "horizon": 100
+    },
+    {
+      "ckpt": 70000,
+      "horizon": 50
+    },
+    {
+      "ckpt": 70000,
+      "horizon": 25
+    }
+  ],
+  "_comment": "E001 pilot sweep (not the docs/04 protocol: default LeIsaac reset randomization, not the 9-grid). Q1: does success rise with training steps? Q2: does re-querying more often (h50/h25) help?",
+  "_mock": false,
+  "_config_file": "configs/eval/E001_ckpt_sweep.json",
+  "_created": "2026-11-27T21:15:55+09:00",
+  "_host": "hands-MS-7C94",
+  "_git": {
+    "commit": "7881bc13af5b4a296567e2d67d00f5c3e5c5debb",
+    "dirty": false
+  }
+}

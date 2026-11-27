@@ -64,6 +64,15 @@ class BridgeClient:
         })
         return unpack(rep["actions"])
 
+    def act(self, state_lerobot: np.ndarray, images_hwc_uint8: dict[str, np.ndarray]) -> np.ndarray:
+        """One action (6,) per call (server --temporal_ensemble mode). Same inputs as infer()."""
+        rep = self.call({
+            "cmd": "act",
+            "state": pack(np.asarray(state_lerobot, dtype=np.float32).reshape(-1)),
+            "images": {k: pack(np.asarray(v, dtype=np.uint8)) for k, v in images_hwc_uint8.items()},
+        })
+        return unpack(rep["action"])
+
     def close(self) -> None:
         try:
             self.conn.send({"cmd": "bye"})

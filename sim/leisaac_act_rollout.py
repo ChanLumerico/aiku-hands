@@ -17,6 +17,15 @@ lerobot-v0.3.3 gRPC client with sim/act_bridge.py.
     the very first rendered frame after reset has no textures.
   * --progress: JSONL progress events for sim/eval.py; --video_dir: per-episode mp4 of the policy's
     camera inputs (front | wrist); --dump_dir: PNG of the frames fed to each inference.
+
+2026-11-28 (ADR-0004): `success` follows the project protocol (docs/04, CLAUDE.md §1.4), not LeIsaac's
+task_done. LeIsaac additionally requires the arm inside its rest-pose box (±30°/joint), which only 18/100
+dataset episodes end in (📏), so it scored policies that finished the task as failures.
+  protocol_v1 = all oranges inside the plate box (x,y ±10 cm, z ±7 cm, same as task_done)
+                AND released (gripper/jaw bodies > --release_dist from every orange)
+                held for --success_hold_steps consecutive steps, within --max_policy_steps (30 s).
+  LeIsaac task_done is still recorded as `success_leisaac` (and counts as success: it is stricter).
+  --policy_mode step: one action per step from the server's temporal ensemble (server --temporal_ensemble).
 """
 
 import sys as _sys
@@ -54,6 +63,13 @@ parser.add_argument("--video_eps", type=int, default=2, help="record the first N
 parser.add_argument("--video_every", type=int, default=2, help="keep every k-th sim step (60/k fps = real time)")
 parser.add_argument("--dump_dir", type=str, default=None, help="PNG of each inference's input frames")
 parser.add_argument("--dump_eps", type=int, default=1, help="dump the first N episodes (with --dump_dir)")
+parser.add_argument("--success_def", choices=["protocol_v1", "leisaac"], default="protocol_v1")
+parser.add_argument("--success_hold_steps", type=int, default=60, help="protocol_v1: consecutive steps (60 = 1 s)")
+parser.add_argument("--release_dist", type=float, default=0.10, help="protocol_v1: gripper/jaw-to-orange min dist (m)")
+parser.add_argument("--max_policy_steps", type=int, default=1800,
+                    help="policy steps per episode, excluding warmup (1800 = 30 s protocol limit); 0 = env timeout only")
+parser.add_argument("--policy_mode", choices=["chunk", "step"], default="chunk",
+                    help="chunk: execute --action_horizon actions per inference; step: 1 ensembled action per step")
 parser.add_argument("--exp_id", type=str, default="E001")
 parser.add_argument("--ckpt_step", type=int, default=70000)
 parser.add_argument("--model", type=str, default="A")
@@ -216,6 +232,56 @@ class PlacedCounter:
         return n
 
 
+class ProtocolJudge:
+    """protocol_v1 success (see module docstring). Release = min distance from the robot's gripper/jaw body
+    origins to any orange center > release_dist. Body origins are not fingertips (🔮 threshold to audit with
+    the logged min_grip_orange_dist_m)."""
+
+    def __init__(self, env, placed: "PlacedCounter", hold_steps: int, release_dist: float):
+        self.placed, self.hold_steps, self.release_dist = placed, hold_steps, release_dist
+        self.robot, self.body_idx = None, []
+        try:
+            self.robot = env.scene["robot"]
+            names = list(self.robot.data.body_names)
+            self.body_idx = [i for i, n in enumerate(names) if "gripper" in n.lower() or "jaw" in n.lower()]
+            print(f"[judge] robot bodies: {names} -> release check on {[names[i] for i in self.body_idx]}")
+        except Exception as e:
+            print(f"[judge] release check disabled: {type(e).__name__}: {e}")
+        self.release_check = bool(self.body_idx) and placed.ok
+        self.reset()
+
+    def reset(self):
+        self.hold, self.first_all_placed, self.last_dist = 0, None, None
+
+    def min_dist(self):
+        if not self.release_check:
+            return None
+        bp = self.robot.data.body_pos_w[0, self.body_idx]  # (B, 3)
+        return float(min(torch.linalg.norm(bp - o.data.root_pos_w[0], dim=-1).min() for o in self.placed.oranges))
+
+    def update(self, step: int):
+        """Returns (n_placed, ok_now, success_now)."""
+        n = self.placed()
+        if n is None:
+            return None, False, False
+        all_in = n == len(self.placed.oranges)
+        if all_in and self.first_all_placed is None:
+            self.first_all_placed = step
+        self.last_dist = self.min_dist()
+        released = (self.last_dist is None) or (self.last_dist > self.release_dist)
+        ok = all_in and released
+        self.hold = self.hold + 1 if ok else 0
+        return n, ok, self.hold >= self.hold_steps
+
+
+def oranges_layout(placed: "PlacedCounter"):
+    """xy (m, env frame not subtracted; single env) of plate + oranges at episode start: checks trial pairing."""
+    if not placed.ok:
+        return None
+    r = lambda t: [round(float(v), 3) for v in t[:2]]  # noqa: E731
+    return {"plate": r(placed.plate.data.root_pos_w[0]), "oranges": [r(o.data.root_pos_w[0]) for o in placed.oranges]}
+
+
 def main(prog: Progress):
     env_cfg = parse_env_cfg(args_cli.task, device=args_cli.device, num_envs=1)
     task_type = get_task_type(args_cli.task)
@@ -241,6 +307,11 @@ def main(prog: Progress):
     except Exception as e:  # never let the diagnostic metric break a rollout
         print(f"[placed] disabled: {type(e).__name__}: {e}")
         placed = lambda: None  # noqa: E731
+        placed.ok = False
+    judge = ProtocolJudge(env, placed, args_cli.success_hold_steps, args_cli.release_dist)
+    step_mode = args_cli.policy_mode == "step"
+    if step_mode and info.get("mode") != "step":
+        raise RuntimeError("--policy_mode step needs the server started with --temporal_ensemble")
     use_video = bool(args_cli.video_dir) and args_cli.video_eps > 0
     if use_video and shutil.which("ffmpeg") is None:
         print("[video] ffmpeg not found -> video disabled")
@@ -254,28 +325,40 @@ def main(prog: Progress):
             dynamic_reset_gripper_effort_limit_sim(env, task_type)
         return env.step(action)
 
-    prog.emit("start", n_eps=args_cli.eval_rounds, max_steps=max_steps, horizon=horizon,
+    if args_cli.max_policy_steps > 0:
+        max_steps = min(max_steps, args_cli.max_policy_steps)
+    prog.emit("start", n_eps=args_cli.eval_rounds, max_steps=max_steps, horizon=1 if step_mode else horizon,
+              success_def=args_cli.success_def, policy_mode=args_cli.policy_mode,
               warmup_steps=args_cli.warmup_steps, cams=cams, policy=info)
+    need_reset = False
     out = open(args_cli.out, "a", encoding="utf-8")
     t_run = time.time()
     successes = 0
     obs_dict, _ = env.reset()
     for ep in range(1, args_cli.eval_rounds + 1):
+        if need_reset:  # episode ended by us (protocol success / 30 s limit): exactly one reset per episode
+            with torch.inference_mode():  # same context as Isaac Lab's auto-reset (inside env.step)
+                obs_dict, _ = env.reset()
+            need_reset = False
         client.reset()
+        judge.reset()
         prog.emit("ep_start", ep=ep)
         # --- warmup: hold the dataset rest pose (also flushes the untextured first frame) ---
         for _ in range(args_cli.warmup_steps):
             obs_dict, _, _, _, _ = step_env(rest)
             rate.sleep(env)
+        layout = oranges_layout(placed) if getattr(placed, "ok", False) else None
         state0 = convert_leisaac_action_to_lerobot(obs_dict["policy"]["joint_pos"])[0]
         print(f"[dbg] ep {ep} state0 (lerobot units) = {np.round(to_numpy(state0), 1).tolist()}")
 
         vw = None
         if use_video and ep <= args_cli.video_eps:
             vw = VideoWriter(os.path.join(args_cli.video_dir, f"ep{ep:03d}.mp4"), 60.0 / args_cli.video_every)
-        success = time_out = False
+        success = time_out = success_leisaac = success_protocol = False
+        end_reason, success_step, success_dist = None, None, None
         steps, n_infer, infer_s = 0, 0, 0.0
         n_placed, max_placed = None, None
+        protocol = args_cli.success_def == "protocol_v1"
         t_ep = time.time()
         while simulation_app.is_running() and not (success or time_out):
             with torch.inference_mode():
@@ -286,26 +369,40 @@ def main(prog: Progress):
                     for c in cams:
                         save_png(os.path.join(args_cli.dump_dir, f"ep{ep}_{n_infer:03d}_{c}.png"), images[c])
                 t0 = time.time()
-                chunk = client.infer(state, images)  # (100, 6) lerobot units
+                if step_mode:
+                    chunk = client.act(state, images).reshape(1, -1)  # (1, 6) ensembled
+                else:
+                    chunk = client.infer(state, images)  # (100, 6) lerobot units
                 infer_s += time.time() - t0
                 n_infer += 1
                 actions = torch.from_numpy(convert_lerobot_action_to_leisaac(chunk)).float().to(env.device)
-                for i in range(horizon):
+                for i in range(1 if step_mode else horizon):
                     obs_dict, _, terminated, time_outs, _ = step_env(actions[i : i + 1])
                     steps += 1
-                    if steps % 15 == 0 and not (terminated[0] or time_outs[0]):  # before auto-reset moves objects
-                        n_placed = placed()
-                        if n_placed is not None:
-                            max_placed = max(max_placed or 0, n_placed)
+                    if terminated[0]:  # LeIsaac task_done (stricter than protocol_v1); env auto-reset already
+                        success = success_leisaac = True
+                        end_reason, success_step = "leisaac_success", steps
+                        break
+                    if time_outs[0]:  # env timeout; auto-reset already
+                        time_out, end_reason = True, "env_timeout"
+                        break
+                    n_now, _, ok_succ = judge.update(steps)  # objects not yet moved by any reset
+                    if n_now is not None:
+                        n_placed = n_now
+                        max_placed = max(max_placed or 0, n_now)
                     if vw is not None and steps % args_cli.video_every == 0:
                         vw.add(compose({c: to_numpy(obs_dict["policy"][c])[0].astype(np.uint8) for c in cams}, cams))
-                    if terminated[0]:
-                        success = True
+                    if protocol and ok_succ:
+                        success = success_protocol = True
+                        end_reason, success_step, success_dist = "protocol_success", steps, judge.last_dist
+                        need_reset = True
                         break
-                    if time_outs[0]:
-                        time_out = True
+                    if args_cli.max_policy_steps > 0 and steps >= args_cli.max_policy_steps:
+                        time_out, end_reason, need_reset = True, "policy_time_limit", True
                         break
                     rate.sleep(env)
+                if success or time_out:
+                    break
                 el = time.time() - t_ep
                 prog.tick(ep=ep, steps=steps, n_infer=n_infer, sps=round(steps / max(el, 1e-6), 1),
                           infer_ms=round(1000 * infer_s / n_infer, 1))
@@ -326,7 +423,14 @@ def main(prog: Progress):
             "episode_len_steps": steps, "duration_s": round(dur, 2),
             "failure_tag": None, "video": f"ep{ep:03d}.mp4" if vw is not None else None,
             "notes": "timeout" if time_out else "",
-            "action_horizon": horizon, "warmup_steps": args_cli.warmup_steps, "n_inferences": n_infer,
+            "success_def": args_cli.success_def, "success_leisaac": success_leisaac,
+            "success_protocol": success_protocol, "end_reason": end_reason, "success_step": success_step,
+            "first_all_placed_step": judge.first_all_placed, "release_check": judge.release_check,
+            "min_grip_orange_dist_m": None if judge.last_dist is None else round(judge.last_dist, 4),
+            "success_grip_orange_dist_m": None if success_dist is None else round(success_dist, 4),
+            "init_layout": layout, "policy_mode": args_cli.policy_mode,
+            "max_policy_steps": args_cli.max_policy_steps, "rest": [round(float(v), 2) for v in args_cli.rest],
+            "action_horizon": 1 if step_mode else horizon, "warmup_steps": args_cli.warmup_steps, "n_inferences": n_infer,
             "mean_infer_ms": round(1000 * infer_s / max(n_infer, 1), 1), "task": args_cli.task,
             "state0": [round(float(v), 2) for v in to_numpy(state0)],
         }

@@ -55,7 +55,23 @@
 
 ## 3. 평가 / Evaluation
 - offline action L1 (`offline_eval.py`): **미구현**. 구현하더라도 E001은 held-out이 없으므로 train-set 수치임
-- sim rollout (HANDS, 9-grid × 50): 미실행. checkpoint 전송은 사용자 승인 후 진행함
+- sim rollout pilot: 📏 [`metrics/rollouts_sim.jsonl`](metrics/rollouts_sim.jsonl) (sweep 1, 2026-11-27 21:15–02:10, HANDS run `20261127-211555_E001_ckpt_sweep`, git 7881bc1)
+  - LeIsaac 기본 reset randomization, seed 1000 고정 (조건 간 같은 20개 배치), warmup 120 step, env timeout 60 s
+  - 이 record의 `success`는 **LeIsaac `task_done`** (rest 자세 조건 포함). `all3_end` = 마지막 확인 시점 오렌지 3개 in-box (rest·release 미확인)
+
+| 조건 | success (LeIsaac) | all3_end | max_placed 평균 [boot 95%] | 0/1/2/3개 |
+|---|---|---|---|---|
+| 28k h100 | 1/20 [0.01, 0.24] | 5/20 [0.11, 0.47] | 1.60 [1.15, 2.10] | 5/3/7/5 |
+| 42k h100 | 0/20 [0.00, 0.16] | 4/20 [0.08, 0.42] | 1.50 [1.05, 1.95] | 4/6/6/4 |
+| 56k h100 | 3/20 [0.05, 0.36] | 5/20 [0.11, 0.47] | 1.70 [1.25, 2.15] | 3/5/7/5 |
+| 70k h100 | 3/20 [0.05, 0.36] | 8/20 [0.22, 0.61] | 1.90 [1.35, 2.40] | 5/0/7/8 |
+| 70k h50 | 4/20 [0.08, 0.42] | 12/20 [0.39, 0.78] | 2.45 [2.05, 2.75] | 1/1/6/12 |
+| 70k h25 | 4/20 [0.08, 0.42] | 12/20 [0.39, 0.78] | 2.55 [2.30, 2.80] | 0/1/7/12 |
+
+  - paired (vs 70k h100): h25 max_placed +0.65 [+0.20, +1.15] (sign p = 0.065), 28k −0.30 [−0.80, +0.20]. step 효과는 불명확, 재질의 주기 효과는 경계선 수준
+  - 31/120 ep가 오렌지 3개를 배치·유지했지만 rest 조건으로 실패 → [ADR-0004](../../docs/decisions/ADR-0004-sim-success-protocol.md)에서 success 정의 변경
+  - 재현: `python3 scripts/analyze_sim_rollouts.py experiments/E001_act_orange_2cam_b8/metrics/rollouts_sim.jsonl --ref ck70k_h100`
+- sim rollout (9-grid × 50, protocol): 미실행
 
 ## 4. 관찰 / Observations
 - 📏 train L1은 70k에서도 수렴하지 않았음. 다만 held-out이 없어서 더 학습하는 것이 일반화에 도움이 되는지는 알 수 없음

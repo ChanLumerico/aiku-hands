@@ -1,6 +1,14 @@
 # CHANGELOG
 날짜별 주요 변경과 결정 로그 (최신이 위).
 
+## 2026-11-28
+- **ADR-0004: sim success = protocol_v1** (오렌지 3개 in-box + released 0.10 m, 1 s 유지, 30 s 제한). LeIsaac `task_done`은 rest 자세 ±30°를 추가로 요구하는데 데이터 데모의 18/100만 만족함 (📏 `scripts/analyze_dataset_rest_pose.py`) → `success_leisaac`로 보조 기록
+- `leisaac_act_rollout.py`: `ProtocolJudge`, `--max_policy_steps` (30 s), 성공 시 조기 종료 + reset 1회 (pairing 유지, `init_layout` 기록), `--policy_mode step` (temporal ensembling)
+- `act_policy_server.py --temporal_ensemble` + bridge `act` 명령, `eval.py` 서버 그룹 키 (ckpt, TE), 조건별 `rest`·protocol 파라미터, summary에 LeIsaac 열
+- E001 sweep 1 결과 커밋 (`experiments/E001_act_orange_2cam_b8/metrics/rollouts_sim.jsonl`, README §3), `scripts/analyze_sim_rollouts.py` (Wilson, bootstrap, paired sign/McNemar)
+- sweep 2 config `configs/eval/E001_eval2_exec_warmup.json` (실행 방식 × 시작 자세)
+- 📏 stub-Isaac으로 6 시나리오 검증 (protocol 성공, TE, warmup 0, rest 변경, 30 s 제한, 조건 간 layout 일치)
+
 ## 2026-11-27 (밤)
 - **통합 sim 평가**: `sim/eval.py` (sweep orchestrator + 진행 막대 `watch` + Wilson `summary` + `--resume`, stdlib only) + MacBook용 `scripts/ah` (setup/sync/eval/watch/fetch) + docs/08. preset `configs/eval/E001_smoke.json`, `E001_ckpt_sweep.json`
 - `leisaac_act_rollout.py`: `--warmup_steps/--rest` (HANDS GUI pilot에서 발견한 OOD reset 자세·무텍스처 첫 프레임 대응), `--progress`, `--video_dir` (ffmpeg pipe, front|wrist), `--dump_dir`, 보조 지표 `max_objects_placed` (🔮 best-effort), `state0` 기록

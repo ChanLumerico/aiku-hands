@@ -71,14 +71,19 @@ scripts/ah fetch              # run 폴더(jsonl·logs·videos)를 MacBook ./run
 | `conditions` | — | `[{ckpt, horizon, (episodes, seed, warmup_steps, extra_args)}]`. 같은 ckpt가 이어지면 서버 1개를 공유 |
 | `episodes` / `seed` | 20 / 1000 | 조건마다 같은 seed → 같은 초기 배치 순서 (paired 비교) |
 | `warmup_steps` | 120 | reset 후 dataset rest pose `[8,−99.9,96,64,15,13]` 유지 (OOD 리셋 자세·무텍스처 첫 프레임 대응) |
-| `episode_length_s` | 60 | ⚠️ warmup도 episode 시간에 포함됨 → 정책 시간 = 60 s − 2 s |
+| `episode_length_s` | 60 | env 자체 timeout (warmup 포함). protocol 제한은 `max_policy_steps`로 따로 적용 |
+| `success_def` / `success_hold_steps` / `release_dist` / `max_policy_steps` | protocol_v1 / 60 / 0.10 / 1800 | ADR-0004. 조건별 덮어쓰기 가능 |
+| 조건별 `rest` / `temporal_ensemble` | — | warmup 자세 6개 값 (lerobot 단위) / ACT temporal ensembling 계수 (서버를 따로 띄우고 매 step 1 action) |
 | `step_hz` | 0 | 0 = 최대 속도 (headless 평가용) |
 | `video_eps` / `dump_eps` | 2 / 0 | 녹화·덤프할 앞쪽 ep 수 |
 | `envs` | `lerobot070` / `leisaac` | conda env 이름 |
 - `--episodes N`, `--video_eps N`으로 덮어쓸 수 있음. `--mock`: Isaac 없이 파이프라인만 시험
 
 ## 5. 지표 주의 / Metric caveats
-- **success** = LeIsaac `task_done`: 오렌지 3개가 **모두** 접시 안 + **로봇이 rest pose 복귀** (docs/07 §5). 매우 엄격하므로 baseline은 0/20도 가능함
+- **success** (2026-11-28부터, [ADR-0004](decisions/ADR-0004-sim-success-protocol.md)) = `protocol_v1`: 오렌지 3개 모두 접시 box 안 + gripper·jaw가 모든 오렌지에서 0.10 m 이상 떨어짐, 1 s 연속 유지, 정책 시작 후 30 s 안
+  - LeIsaac `task_done`(위 조건 + **rest 자세 ±30°**)은 `success_leisaac`로 별도 기록. 데이터 데모의 18/100만 rest box 안에서 끝나므로 주 지표로 쓰지 않음
+  - 2026-11-27 sweep 1 record에는 `success_def`가 없음 → 그 `success`는 LeIsaac 기준임
+  - 분석: `python3 scripts/analyze_sim_rollouts.py <run_dir | rollouts.jsonl> --ref <cond>` (Wilson CI, paired sign/McNemar)
 - **`max_objects_placed`** (🔮 보조 지표): 15 step마다 접시 기준 x·y ±10 cm, z ±7 cm 안 오렌지 수의 episode 최댓값. rest 복귀 조건은 없음
   - rigid object 이름에 `orange`/`plate`가 들어간다고 가정함. 못 찾으면 `null`이고 sim 로그 `[placed] rigid objects: [...]`에 실제 이름이 찍힘
 - 이번 sweep은 **pilot**임 (LeIsaac 기본 reset randomization, docs/04의 9-grid·50회 아님)
