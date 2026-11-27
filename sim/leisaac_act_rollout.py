@@ -19,6 +19,10 @@ lerobot-v0.3.3 gRPC client with sim/act_bridge.py.
     camera inputs (front | wrist); --dump_dir: PNG of the frames fed to each inference.
 """
 
+import sys as _sys
+
+_sys.dont_write_bytecode = True  # repo rule: never create __pycache__ (CLAUDE.md §3.9)
+
 import multiprocessing
 
 if multiprocessing.get_start_method() != "spawn":

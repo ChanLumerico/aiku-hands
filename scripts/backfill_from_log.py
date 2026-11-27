@@ -9,6 +9,10 @@ ts / wall_s come from the lerobot log header (1 s resolution), not from the back
 
 from __future__ import annotations
 
+import sys as _sys
+
+_sys.dont_write_bytecode = True  # repo rule: never create __pycache__ (CLAUDE.md §3.9)
+
 import argparse
 import hashlib
 import sys

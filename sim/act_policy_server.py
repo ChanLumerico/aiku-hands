@@ -11,6 +11,10 @@ The sim decides how many of those actions to execute before asking again.
 
 from __future__ import annotations
 
+import sys as _sys
+
+_sys.dont_write_bytecode = True  # repo rule: never create __pycache__ (CLAUDE.md §3.9)
+
 import argparse
 import logging
 import sys

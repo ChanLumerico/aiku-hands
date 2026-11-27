@@ -12,6 +12,10 @@ Safety (CLAUDE.md §3):
 
 from __future__ import annotations
 
+import sys as _sys
+
+_sys.dont_write_bytecode = True  # repo rule: never create __pycache__ (CLAUDE.md §3.9)
+
 import argparse
 import json
 import os

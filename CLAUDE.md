@@ -92,6 +92,10 @@
 6. 새 GitHub repo는 별도 지시가 없으면 **private** (aiku-hands는 사용자 지시로 public)
 7. 확신 없는 CLI 옵션은 `lerobot-train --help` 또는 소스(`site-packages/lerobot/`)로 **먼저 확인**
 8. 되돌릴 수 없는 작업(파일 삭제, force push, 대용량 다운로드)은 실행 전 사용자 확인
+9. **`__pycache__`를 절대 만들지 않음** (사용자 지시, 2026-11-28)
+   - Mac Studio venv: `site-packages/zz_no_bytecode.pth` (`import sys; sys.dont_write_bytecode = True`)가 모든 실행에 적용됨. venv를 다시 만들면 docs/01 §2대로 다시 추가할 것
+   - 다른 env (HANDS conda 등): `scripts/`·`sim/`의 모든 entry script 맨 위에 `_sys.dont_write_bytecode = True` guard가 있음. **새 entry script에도 반드시 넣을 것** (`from __future__` 바로 다음, 다른 import보다 먼저)
+   - 일회성 실행은 `python -B` 또는 `PYTHONDONTWRITEBYTECODE=1`
 
 ---
 

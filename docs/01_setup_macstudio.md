@@ -17,6 +17,8 @@ python3.12 -m venv ~/venvs/lerobot && source ~/venvs/lerobot/bin/activate
 pip install 'lerobot[dataset,training]==0.7.0'   # training extra 없으면 accelerate ImportError
 pip install -e ~/Desktop/Programming/aiku-hands'[dev]'
 brew install ffmpeg   # 8.1
+# repo 규칙: __pycache__ 생성 금지 (CLAUDE.md §3.9) — venv 전체에 적용
+echo 'import sys; sys.dont_write_bytecode = True' > ~/venvs/lerobot/lib/python3.12/site-packages/zz_no_bytecode.pth
 ```
 - 📏 버전: Python 3.12.16, torch 2.15.0, lerobot 0.7.0, accelerate 1.16.0, trackio 0.45.1
 - 전체 freeze는 실험마다 `experiments/<ID>/env/pip_freeze.txt`에 저장됨 (`run_train.py`)
