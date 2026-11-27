@@ -1,4 +1,6 @@
 # 07. E001 정책을 LeIsaac sim에서 롤아웃하기 / Running E001 in the LeIsaac simulator
+> ➡️ **원격·반복 평가는 [docs/08](08_sim_eval.md)의 `scripts/ah eval`을 씀.** 이 문서는 GUI 시연용 수동 2-터미널 방식과 배경 설명임.
+> 2026-11-27 HANDS GUI pilot에서 발견: sim reset 자세(0 rad)가 dataset 시작 자세와 달라 OOD → `--warmup_steps 120` 필요, reset 직후 첫 프레임은 텍스처 없음.
 > TL;DR (EN): Use checkpoint `070000` (lowest train loss; there is no held-out split, so "best" = last).
 > LeIsaac's built-in `--policy_type=lerobot-act` path does **not** work with our lerobot 0.7.0 checkpoint
 > (it speaks lerobot v0.3.3's gRPC protocol), so we run a 2-process bridge on the HANDS PC: a policy server in

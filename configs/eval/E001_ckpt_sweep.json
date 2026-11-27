@@ -1,0 +1,20 @@
+{
+  "_comment": "E001 pilot sweep (not the docs/04 protocol: default LeIsaac reset randomization, not the 9-grid). Q1: does success rise with training steps? Q2: does re-querying more often (h50/h25) help?",
+  "exp_id": "E001",
+  "run": "act_orange_2cam_b8",
+  "task": "LeIsaac-SO101-PickOrange-v0",
+  "episodes": 20,
+  "seed": 1000,
+  "episode_length_s": 60,
+  "warmup_steps": 120,
+  "step_hz": 0,
+  "video_eps": 2,
+  "conditions": [
+    {"ckpt": 28000, "horizon": 100},
+    {"ckpt": 42000, "horizon": 100},
+    {"ckpt": 56000, "horizon": 100},
+    {"ckpt": 70000, "horizon": 100},
+    {"ckpt": 70000, "horizon": 50},
+    {"ckpt": 70000, "horizon": 25}
+  ]
+}

@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# ah — drive HANDS-PC sim evaluation from the MacBook (or any machine with `ssh hands` / `ssh macstudio`).
+#
+#   scripts/ah setup                       # clone/update the repo on the HANDS Desktop, check conda envs
+#   scripts/ah pull                        # git pull on HANDS
+#   scripts/ah sync RUN STEP [STEP ...]    # Mac Studio ckpt -> (this machine) -> HANDS repo runs/RUN/checkpoints/
+#   scripts/ah eval CONFIG [eval.py args]  # start `sim/eval.py run` on HANDS in tmux "ah-eval", then watch
+#   scripts/ah watch [RUN]                 # live progress bars (Ctrl-C detaches; the run keeps going)
+#   scripts/ah attach | stop               # attach to / Ctrl-C the tmux session
+#   scripts/ah resume [RUN]                # re-run unfinished conditions of RUN (default latest)
+#   scripts/ah summary [RUN] [--md]        # success + Wilson CI table
+#   scripts/ah list | gpu | log [RUN]      # runs on HANDS · nvidia-smi · tail newest sim log
+#   scripts/ah fetch [RUN]                 # copy the run dir (jsonl, logs, videos) into ./runs/sim_eval/ here
+#
+# Env overrides: AH_HANDS=hands  AH_STUDIO=macstudio  AH_STUDIO_REPO=~/Desktop/Programming/aiku-hands
+#                AH_HANDS_REPO=<auto: $(xdg-user-dir DESKTOP)/aiku-hands>  AH_REPO_URL=https://github.com/ChanLumerico/aiku-hands.git
+# Never drives the real robot.
+set -euo pipefail
+
+H=${AH_HANDS:-hands}
+S=${AH_STUDIO:-macstudio}
+STUDIO_REPO=${AH_STUDIO_REPO:-'~/Desktop/Programming/aiku-hands'}
+URL=${AH_REPO_URL:-https://github.com/ChanLumerico/aiku-hands.git}
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SESSION=ah-eval
+
+hrepo() {
+  if [ -n "${AH_HANDS_REPO:-}" ]; then echo "$AH_HANDS_REPO"; return; fi
+  ssh -o ConnectTimeout=8 "$H" 'd=$(xdg-user-dir DESKTOP 2>/dev/null); [ -d "$d" ] || d=$HOME/Desktop; echo "$d/aiku-hands"'
+}
+q() { printf '%q' "$1"; }  # quote for the remote shell
+
+cmd=${1:-help}; shift || true
+case "$cmd" in
+  setup)
+    R=$(hrepo); echo "HANDS repo: $R"
+    ssh "$H" "set -e; if [ -d $(q "$R")/.git ]; then git -C $(q "$R") pull --ff-only; else git clone $(q "$URL") $(q "$R"); fi
+      git -C $(q "$R") log --oneline -1
+      C=\${CONDA_EXE:-\$(ls ~/miniconda3/bin/conda ~/anaconda3/bin/conda ~/miniforge3/bin/conda 2>/dev/null | head -1)}
+      echo \"conda: \$C\"; \"\$C\" env list | grep -E '^(lerobot070|leisaac) ' || echo '!! expected conda envs lerobot070 + leisaac'
+      command -v tmux >/dev/null || echo '!! tmux missing (sudo apt install tmux)'
+      command -v ffmpeg >/dev/null || echo '!! ffmpeg missing -> no videos'
+      ls -d $(q "$R")/runs/*/checkpoints/*/pretrained_model 2>/dev/null || echo '(no checkpoints in repo yet -> ah sync)'"
+    ;;
+  pull)
+    R=$(hrepo); ssh "$H" "git -C $(q "$R") pull --ff-only && git -C $(q "$R") log --oneline -1" ;;
+  sync)
+    RUN=${1:?usage: ah sync RUN STEP [STEP...]}; shift
+    [ $# -gt 0 ] || { echo "usage: ah sync RUN STEP [STEP...]"; exit 1; }
+    R=$(hrepo); TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
+    for st in "$@"; do
+      st=$(printf '%06d' "$((10#$st))")
+      SRC="$STUDIO_REPO/runs/$RUN/checkpoints/$st/pretrained_model/"
+      DST="$R/runs/$RUN/checkpoints/$st/pretrained_model/"
+      if ssh "$H" "test -f $(q "$DST")model.safetensors"; then echo "✓ $st already on HANDS"; continue; fi
+      echo "→ $st: $S → here"; rsync -a --info=progress2 "$S:$SRC" "$TMP/$st/" 2>/dev/null || rsync -a "$S:$SRC" "$TMP/$st/"
+      echo "→ $st: here → $H"; ssh "$H" "mkdir -p $(q "$DST")"
+      rsync -a --info=progress2 "$TMP/$st/" "$H:$DST" 2>/dev/null || rsync -a "$TMP/$st/" "$H:$DST"
+      rm -rf "${TMP:?}/$st"
+      ssh "$H" "ls $(q "$DST") | wc -l | xargs echo '  files:'; du -sh $(q "$DST")"
+    done ;;
+  eval)
+    CFG=${1:?usage: ah eval configs/eval/X.json [--episodes N] [--mock]}; shift
+    R=$(hrepo); ARGS=$(printf ' %q' "$@")
+    if ssh "$H" "tmux has-session -t $SESSION 2>/dev/null"; then
+      echo "tmux '$SESSION' already exists on $H → ah watch / ah attach / ah stop"; exit 1; fi
+    ssh "$H" "cd $(q "$R") && tmux new-session -d -s $SESSION \"python3 sim/eval.py run $(q "$CFG")$ARGS; echo; echo '[eval finished — exit this shell to close]'; exec bash\""
+    echo "started on $H (tmux $SESSION). Ctrl-C below only detaches."; sleep 2
+    exec ssh -t "$H" "cd $(q "$R") && python3 sim/eval.py watch latest" ;;
+  resume)
+    R=$(hrepo)
+    if ssh "$H" "tmux has-session -t $SESSION 2>/dev/null"; then echo "tmux '$SESSION' exists → ah stop first, or ah attach"; exit 1; fi
+    ssh "$H" "cd $(q "$R") && tmux new-session -d -s $SESSION \"python3 sim/eval.py run --resume $(q "${1:-latest}"); exec bash\""
+    sleep 2; exec ssh -t "$H" "cd $(q "$R") && python3 sim/eval.py watch latest" ;;
+  watch)   R=$(hrepo); exec ssh -t "$H" "cd $(q "$R") && python3 sim/eval.py watch $(q "${1:-latest}")" ;;
+  attach)  exec ssh -t "$H" "tmux attach -t $SESSION" ;;
+  stop)    ssh "$H" "tmux send-keys -t $SESSION C-c" && echo "sent Ctrl-C (children are stopped; resume: ah resume)" ;;
+  summary) R=$(hrepo); ssh "$H" "cd $(q "$R") && python3 sim/eval.py summary $(printf ' %q' "${@:-latest}")" ;;
+  list)    R=$(hrepo); ssh "$H" "cd $(q "$R") && python3 sim/eval.py list" ;;
+  gpu)     ssh "$H" nvidia-smi ;;
+  log)     R=$(hrepo); ssh -t "$H" "cd $(q "$R")/runs/sim_eval/$(q "${1:-latest}")/logs && tail -n 40 -f \$(ls -t sim_*.log | head -1)" ;;
+  fetch)
+    R=$(hrepo); RUN=${1:-latest}
+    NAME=$(ssh "$H" "cd $(q "$R")/runs/sim_eval && basename \$(readlink -f $(q "$RUN"))")
+    mkdir -p "$HERE/runs/sim_eval"
+    rsync -a --info=progress2 --exclude dumps "$H:$R/runs/sim_eval/$NAME" "$HERE/runs/sim_eval/" 2>/dev/null \
+      || rsync -a --exclude dumps "$H:$R/runs/sim_eval/$NAME" "$HERE/runs/sim_eval/"
+    echo "→ $HERE/runs/sim_eval/$NAME"; ls "$HERE/runs/sim_eval/$NAME/videos"/* 2>/dev/null | head
+    (cd "$HERE" && python3 sim/eval.py summary "runs/sim_eval/$NAME") || true ;;
+  *) sed -n '2,17p' "$0" ;;
+esac

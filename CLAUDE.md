@@ -69,7 +69,8 @@
 ### 2.2 HANDS PC — sim/Isaac 담당 (`ssh hands`)
 - Ubuntu 22.04, kernel 6.8, NVIDIA driver **580.178.04** (595 계열은 Isaac Sim 5.1 RTX와 충돌, apt pin 고정)
 - conda env `leisaac`: Python 3.11, Isaac Sim 5.1.0, Isaac Lab 2.3.0, LeIsaac 0.4.0, 소스 `~/lerobot_ws/leisaac`
-- **sim 스크립트는 `~/sim_tools/`에 둠** (`~/lerobot_ws/` 안에서 실행하면 namespace package 문제로 `leisaac` import 깨짐)
+- **sim 평가는 HANDS Desktop의 repo clone에서 `sim/eval.py`로 실행함** (MacBook `scripts/ah`로 원격 구동, docs/08). `~/lerobot_ws/` 안에서는 실행 금지 (namespace package 문제로 `leisaac` import 깨짐). 구 `~/sim_tools/`는 docs/07 수동 방식용
+- checkpoint (HANDS): repo `runs/<run>/checkpoints/<step>/pretrained_model/` (Mac Studio와 같은 상대 경로)
 - task `LeIsaac-SO101-PickOrange-v0`: `gym.make` 전에 `import leisaac.tasks.pick_orange`, `cfg.use_teleop_device("so101leader")`, `cfg.recorders=None` 필수
 - wrist camera template: `pos=(-0.001, 0.1, -0.04)`, `rot_wxyz=(-0.404379, -0.912179, -0.0451242, 0.0486914)`, ROS convention, parent `Robot/gripper`, HFOV 53.5°
 - **실측 wrist intrinsics** (Zhang, 17 views, RMS 0.246 px, 640×480): `fx=635.90, fy=636.92, cx=347.85, cy=226.30`, HFOV 53.43°, `dist=[-0.44109, 0.2733, -0.00181, 0.00221, -0.06356]`
