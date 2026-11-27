@@ -1,6 +1,9 @@
 # CHANGELOG
 날짜별 주요 변경과 결정 로그 (최신이 위).
 
+## 2026-11-27 (저녁)
+- **sim 롤아웃 브리지**: `sim/act_policy_server.py` (lerobot 0.7.0) + `sim/leisaac_act_rollout.py` (leisaac env) + docs/07. LeIsaac v0.4.0 내장 lerobot 클라이언트가 lerobot v0.3.3 gRPC 전용이라 0.7.0 checkpoint와 호환되지 않음을 확인함. 서버는 Mac에서 실제 ckpt로 검증함. sim 스크립트는 HANDS PC에서 미검증
+
 ## 2026-11-27 (오후)
 - **E001 완료**: 02:14→08:54, exit 0, 6.662 h. train L1 0.695→0.140 (미수렴), KL이 35.5k step 이후 <5e-4 (collapse), ckpt 5 × 590.86 MB
 - repo public 전환 (사용자 지시)

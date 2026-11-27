@@ -67,6 +67,6 @@ python -m aiku_hands.data.inspect ~/datasets/cohab_orange
 
 ## 7. 문서 / Docs
 - [00 개요](docs/00_project_overview.md) · [01 Mac Studio](docs/01_setup_macstudio.md) · [02 HANDS PC](docs/02_setup_hands_pc.md) · [03 데이터](docs/03_data.md)
-- [04 평가 프로토콜](docs/04_evaluation_protocol.md) · [05 로깅 사양](docs/05_logging_spec.md) · [06 규칙](docs/06_conventions.md)
+- [04 평가 프로토콜](docs/04_evaluation_protocol.md) · [05 로깅 사양](docs/05_logging_spec.md) · [06 규칙](docs/06_conventions.md) · [**07 sim 롤아웃 가이드**](docs/07_sim_rollout_guide.md)
 - 카메라: [intrinsics](docs/camera/wrist_intrinsics.md) · [wrist offset (미해결)](docs/camera/wrist_offset.md)
 - 결정 기록: [ADR-0001](docs/decisions/ADR-0001-sim-to-real-act-dr.md) · [ADR-0002](docs/decisions/ADR-0002-logging-v0-wrapper.md) · [ADR-0003](docs/decisions/ADR-0003-lerobot070-investigation.md)
