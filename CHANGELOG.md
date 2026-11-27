@@ -1,6 +1,12 @@
 # CHANGELOG
 날짜별 주요 변경과 결정 로그 (최신이 위).
 
+## 2026-11-27 (밤)
+- **통합 sim 평가**: `sim/eval.py` (sweep orchestrator + 진행 막대 `watch` + Wilson `summary` + `--resume`, stdlib only) + MacBook용 `scripts/ah` (setup/sync/eval/watch/fetch) + docs/08. preset `configs/eval/E001_smoke.json`, `E001_ckpt_sweep.json`
+- `leisaac_act_rollout.py`: `--warmup_steps/--rest` (HANDS GUI pilot에서 발견한 OOD reset 자세·무텍스처 첫 프레임 대응), `--progress`, `--video_dir` (ffmpeg pipe, front|wrist), `--dump_dir`, 보조 지표 `max_objects_placed` (🔮 best-effort), `state0` 기록
+- 📏 mock + stub-Isaac으로 실제 rollout 스크립트 경로를 끝까지 검증함. 실제 Isaac 실행은 미검증
+- HANDS 작업 위치를 `~/sim_tools/` → Desktop repo clone으로 변경함 (CLAUDE.md §2.2)
+
 ## 2026-11-27 (저녁)
 - **sim 롤아웃 브리지**: `sim/act_policy_server.py` (lerobot 0.7.0) + `sim/leisaac_act_rollout.py` (leisaac env) + docs/07. LeIsaac v0.4.0 내장 lerobot 클라이언트가 lerobot v0.3.3 gRPC 전용이라 0.7.0 checkpoint와 호환되지 않음을 확인함. 서버는 Mac에서 실제 ckpt로 검증함. sim 스크립트는 HANDS PC에서 미검증
 

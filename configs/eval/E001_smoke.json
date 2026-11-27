@@ -1,0 +1,10 @@
+{
+  "_comment": "1 episode, 70k, with frame dumps + video: check warmup state0 and textures before a long sweep.",
+  "exp_id": "E001",
+  "run": "act_orange_2cam_b8",
+  "episodes": 1,
+  "warmup_steps": 120,
+  "video_eps": 1,
+  "dump_eps": 1,
+  "conditions": [{"ckpt": 70000, "horizon": 100}]
+}
