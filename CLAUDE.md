@@ -63,7 +63,7 @@
   - `--rename_map`은 **pretrained checkpoint가 있을 때만** 허용됨 (fresh init이면 ValueError) — 소스 확인함
   - held-out split은 `--dataset.eval_split` + `--eval_steps`로 내장 지원 (task별 마지막 ceil(n·split) ep 홀드아웃) — 소스 확인함
 - dataset `~/datasets/cohab_orange` (1.1 GB): HF `edge-inference/cohab-so101-pick-orange-dataset`, LeRobot v3.0, 100 ep, 60,541 frames, 30 fps, front+wrist 640×480 AV1, action/state 6-D (−100..100, gripper 0..100), Isaac Sim 5.1 kitchen teleop
-- 디스크: 작업 전후 `df -h ~` 확인. **여유 5 GB 미만이면 멈추고 사용자에게 알림**. checkpoint 개당 약 0.6 GB (🔮, 첫 ckpt에서 실측 후 갱신)
+- 디스크: 작업 전후 `df -h ~` 확인. **여유 5 GB 미만이면 멈추고 사용자에게 알림**. checkpoint 개당 590.86 MB (📏 E001, ACT 2cam)
 - 장시간 학습은 반드시 **`tmux` 안에서 `caffeinate -is`로** 실행
 
 ### 2.2 HANDS PC — sim/Isaac 담당 (`ssh hands`)

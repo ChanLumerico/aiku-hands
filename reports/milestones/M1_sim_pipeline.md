@@ -5,7 +5,7 @@
 | 구성 요소 | 상태 | 근거 |
 |---|---|---|
 | sim 데이터 | ✅ cohab orange 100 ep | docs/03_data.md |
-| 학습 (Mac Studio) | ✅ 스모크 / ⏸ E001 planned | E000 |
+| 학습 (Mac Studio) | ✅ E001 done (70k, 6.66 h) | E001 |
 | 로깅 | ✅ v0 | docs/05_logging_spec.md |
 | checkpoint → HANDS 전송 | ⬜ `sync_ckpt_to_hands.sh` 준비됨, ssh 미확인 | |
 | sim rollout 9-grid × 50 | ⬜ 좌표·스크립트 미정 | configs/eval/ |

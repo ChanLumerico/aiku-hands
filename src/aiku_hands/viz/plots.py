@@ -29,8 +29,15 @@ def loss_curves(df: pd.DataFrame, exp_id: str):
     fig, axes = plt.subplots(1, len(keys), figsize=(3.2 * len(keys), 2.6), squeeze=False)
     for ax, k in zip(axes[0], keys):
         ax.plot(df["step"], df[k], marker="o" if len(df) < 40 else None, ms=2.5)
-        ax.set_yscale("log")
-        ax.set_title(k)
+        if k == "kld_loss" and (df[k] <= 0).any():
+            # lerobot prints kld with 3 decimals: 0.000 means < 5e-4, which a log axis would drop silently
+            ax.set_yscale("symlog", linthresh=1e-3)
+            ax.axhspan(0, 5e-4, color="0.85", lw=0)
+            ax.set_ylim(bottom=0)
+            ax.set_title(f"{k} (symlog; grey = printed 0.000, <5e-4)")
+        else:
+            ax.set_yscale("log")
+            ax.set_title(k)
         _xlabel(ax, df)
     fig.suptitle(f"{exp_id} · training loss (log y; per-log_freq window average)", fontsize=9)
     _caption(fig, exp_id, df)

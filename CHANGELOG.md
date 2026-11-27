@@ -1,6 +1,11 @@
 # CHANGELOG
 날짜별 주요 변경과 결정 로그 (최신이 위).
 
+## 2026-11-27 (오후)
+- **E001 완료**: 02:14→08:54, exit 0, 6.662 h. train L1 0.695→0.140 (미수렴), KL이 35.5k step 이후 <5e-4 (collapse), ckpt 5 × 590.86 MB
+- repo public 전환 (사용자 지시)
+- fix: manifest의 `git_dirty`를 env 파일 쓰기 전에 계산함 / viz: kld가 0으로 출력되면 symlog 축을 씀
+
 ## 2026-11-27
 - **repo bootstrap**: CLAUDE.md, 디렉터리 구조, `aiku_hands` 패키지, 문서 00–06, camera, ADR-0001~0003
 - **로깅 v0**: `run_train.py` (preflight + manifest + live JSONL + sysmon), `backfill_from_log.py`, `make_figures.py`, 28 unit tests

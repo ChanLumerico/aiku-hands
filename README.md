@@ -21,7 +21,7 @@
 |---|---|
 | 학습 pipeline (Mac Studio, MPS) | ✅ 스모크 통과 ([E000](experiments/E000_act_orange_smoke/README.md)): 2.94 step/s, 70k ≈ 6.6 h |
 | 로깅 v0 (`run_train.py`) | ✅ 구현, dry-run과 wrapper self-test 통과, 28 tests |
-| E001 (ACT 2cam, 70k) | ▶️ running (2026-11-27 02:14 시작, ETA ≈ 08:55) |
+| E001 (ACT 2cam, 70k) | ✅ done (6.66 h): train L1 0.140, KL collapse 관찰 ([E001](experiments/E001_act_orange_2cam_b8/README.md)) |
 | sim rollout (HANDS PC) | ⬜ 미착수 |
 | real wrist camera | ⚠️ intrinsics 측정 완료, **mount offset 미측정** |
 | real SO-101 | ⚠️ 모터 보드 USB `error -71`, 현장 수리 필요 |
@@ -31,7 +31,7 @@
 | ID | date | status | model | dataset | steps | batch | cams | best metric | report |
 |---|---|---|---|---|---|---|---|---|---|
 | E000_act_orange_smoke | 2026-11-27 | done | ACT | cohab_orange | 200 | 8 | front+wrist | loss@200=3.545 (train) | [README](experiments/E000_act_orange_smoke/README.md) |
-| E001_act_orange_2cam_b8 | 2026-11-27 | running | ACT | cohab_orange | 70000 | 8 | front+wrist |  | [README](experiments/E001_act_orange_2cam_b8/README.md) |
+| E001_act_orange_2cam_b8 | 2026-11-27 | done | ACT | cohab_orange | 70000 | 8 | front+wrist | l1@70k=0.140 (train) | [README](experiments/E001_act_orange_2cam_b8/README.md) |
 <!-- results:end -->
 - 이 표는 `python scripts/make_figures.py --update-readme`로 [experiments/registry.csv](experiments/registry.csv)에서 다시 생성함
 
