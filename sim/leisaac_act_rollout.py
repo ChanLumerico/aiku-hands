@@ -60,6 +60,30 @@ args_cli = parser.parse_args()
 app_launcher = AppLauncher(vars(args_cli))
 simulation_app = app_launcher.app
 
+
+def _pin_leisaac_assets() -> None:
+    """LeIsaac resolves ASSETS_ROOT as <git root of the *cwd*>/assets (leisaac/utils/constant.py), so running
+    from inside any other git repo (this one) points it at a non-existent folder (📏 2026-11-27:
+    'Failed to open layer .../aiku-hands/assets/scenes/kitchen_with_orange/scene.usd'). Pin it to the LeIsaac
+    checkout's own assets/ unless the user already set LEISAAC_ASSETS_ROOT."""
+    import importlib.util
+    import os as _os
+    from pathlib import Path as _P
+
+    if _os.environ.get("LEISAAC_ASSETS_ROOT"):
+        return
+    spec = importlib.util.find_spec("leisaac")
+    origin = spec.origin if spec and spec.origin else None
+    if not origin:
+        return
+    root = _P(origin).resolve().parents[3] / "assets"  # <repo>/source/leisaac/leisaac/__init__.py -> <repo>/assets
+    if root.is_dir():
+        _os.environ["LEISAAC_ASSETS_ROOT"] = str(root)
+        print(f"[assets] LEISAAC_ASSETS_ROOT={root}")
+
+
+_pin_leisaac_assets()
+
 import json  # noqa: E402
 import os  # noqa: E402
 import shutil  # noqa: E402

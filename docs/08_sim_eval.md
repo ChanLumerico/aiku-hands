@@ -89,6 +89,12 @@ scripts/ah fetch              # run 폴더(jsonl·logs·videos)를 MacBook ./run
 - 📏 stub Isaac(가짜 `isaaclab`/`leisaac` 모듈 + 실제 `act_bridge` 서버): **실제** `leisaac_act_rollout.py`가 eval.py의 conda 명령으로 실행되어 warmup 후 `state0 = [8, −99.9, 96, 64, 15, 13]`, mp4 1280×480 30 fps, PNG dump, JSONL, placed 카운트까지 동작함
 - 🔮 미검증: 실제 Isaac Sim 5.1에서의 headless 실행, `env.scene.rigid_objects` 이름, `conda run` 하의 Isaac 환경 변수
 
+## 7. 문제 해결 / Troubleshooting
+| 증상 | 원인 · 조치 |
+|---|---|
+| `Failed to open layer @<repo>/assets/scenes/.../scene.usd@` | LeIsaac은 `ASSETS_ROOT = <cwd의 git root>/assets`로 정함 → 다른 git repo 안에서 실행하면 경로가 틀어짐 (📏 2026-11-27). rollout이 `LEISAAC_ASSETS_ROOT`를 LeIsaac checkout의 `assets/`로 자동 고정함. 다른 위치면 환경변수로 직접 지정 |
+| `policy server ... timeout` | `logs/server_ck*.log` 확인 (CUDA·lerobot env) |
+
 ## Open questions / 미해결
 - `conda run`으로 띄운 Isaac이 activate 때와 같은 환경 변수를 받는지 (실패 시 `envs`에 python 절대 경로를 쓰는 옵션 추가)
 - 9-grid 고정 좌표 reset event (프로토콜 rollout용)
