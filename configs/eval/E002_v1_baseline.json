@@ -1,0 +1,17 @@
+{
+  "_comment": "Eval protocol v1 baseline for the improvement experiments (E003+ use the E002 recipe: 90/10 split). protocol_v1 success, h25, warmup to the dataset frame-15 median pose, 30 s, 50 ep (docs/04 count). 40k = same step budget as E003; 100k = does sim success move with steps while held-out L1 stays flat?",
+  "exp_id": "E002",
+  "run": "act_orange_2cam_b8_val10",
+  "task": "LeIsaac-SO101-PickOrange-v0",
+  "episodes": 50,
+  "seed": 1000,
+  "warmup_steps": 120,
+  "step_hz": 0,
+  "video_eps": 5,
+  "success_def": "protocol_v1",
+  "max_policy_steps": 1800,
+  "conditions": [
+    {"ckpt": 40000, "horizon": 25, "name": "e002_40k", "rest": [27.3, -99.7, 96.6, 67.5, 30.6, 9.0]},
+    {"ckpt": 100000, "horizon": 25, "name": "e002_100k", "rest": [27.3, -99.7, 96.6, 67.5, 30.6, 9.0]}
+  ]
+}
